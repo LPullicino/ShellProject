@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "functions.h"
 
@@ -29,6 +31,34 @@ void initVariables() {
     } else {
 
         perror("getcwd() error");
+
+    }
+
+}
+
+void forker() {
+
+    pid_t pid_result = fork();
+
+    if (pid_result == -1) {
+
+        perror("fork failed");
+
+    } else if (pid_result > 0) {
+
+        if (wait(NULL) == -1) {
+
+            perror("wait failed");
+
+        }
+
+    }
+
+    // This is the child process
+
+    if (execvp(*argv, argv) == -1) {
+
+        perror("execvp failed");
 
     }
 
