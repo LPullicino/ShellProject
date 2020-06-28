@@ -55,22 +55,28 @@ int main() {
 
         } else {
 
-            char *temp = args[0];
+            char *tempArg = args[0];
+            char *tempLine = ogLine;
 
-            if(strchr(temp, '=') != NULL) {
+
+            if(strchr(tempArg, '=') != NULL) {
 
                 setVariable(args, ogLine);
 
+
+            } else if (strchr(tempLine, '|') != NULL) {
+
+                piper(args, ogLine);
+
             } else {
 
-                //fork-plus-exec
+                forker(args, ogLine);
 
             }
 
         }
 
         linenoiseFree(line);
-
 
     }
 

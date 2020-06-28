@@ -13,7 +13,7 @@
 #include "functions.h"
 
 
-
+#define MAX_ARGS 255
 #define MAX_PATH 1024
 #define MAX_STRING_LEN 255
 
@@ -36,31 +36,172 @@ void initVariables() {
 
 }
 
-void forker() {
+void forker(char *args[], char *line) {
 
-    pid_t pid_result = fork();
+    pid_t pidNum = fork();
+    char *temp = line;
 
-    if (pid_result == -1) {
+    char *fileName = args[0];                   //can just input args[0] in execvp() but this makes the code slightly more readable
+
+    if (pidNum == -1) {
 
         perror("fork failed");
 
-    } else if (pid_result > 0) {
+    } else if (pidNum > 0) {
 
-        if (wait(NULL) == -1) {
+        int status;
 
-            perror("wait failed");
+        if (waitpid(pidNum, &status, 0) == -1) {
+
+            perror("Error on wait");
+
+        }
+
+        if (WIFEXITED(status)) {
+
+            printf("Child exited normally with exit status: %d\n", WEXITSTATUS(status));
+
+        } else {
+
+            printf("Child did not exit normally.\n");
 
         }
 
     }
 
-    // This is the child process
+    if(strchr(temp, '"') != NULL) {
 
-    if (execvp(*argv, argv) == -1) {
+        temp = line;
+        char *firstLoc = strchr(temp, '"');
+        int firstPos = firstLoc - temp + 1;
 
-        perror("execvp failed");
+        temp = line;
+        char *lastLoc = strrchr(temp, '"');
+        int lastPos = lastLoc - temp + 1;
+
+        char fileArgument[MAX_STRING_LEN];
+        strncpy(fileArgument, line + firstPos, lastPos - firstPos - 1);
+
+        /*printf("%s\n", fileArgument);*/
+
+        char *toPass[3] = {fileName, fileArgument, NULL};
+
+        if (execvp(fileName, toPass) == -1) {
+
+            perror("Error when using execvp");
+
+        }
+
+    } else {
+
+        if (execvp(fileName, args) == -1) {
+
+            perror("Error when using execvp");
+
+        }
 
     }
+
+}
+
+void piper(char *args[], char *line) {
+
+    pid_t id1, id2;
+    int numOfPipes = countChar(line, '|'), fd[2*numOfPipes], tokenIndex;
+    char *temp = line, *token = NULL;
+
+    char stringBeforePipe[MAX_STRING_LEN];
+    char stringAfterPipe[MAX_STRING_LEN];
+
+    char *argsBeforePipe[MAX_ARGS];
+    char *argsAfterPipe[MAX_ARGS];
+
+    char *charLoc = strchr(temp, '|');
+    int pos = charLoc - temp + 1;
+
+    strncpy(stringBeforePipe, line, pos-1);
+    strcpy(stringAfterPipe, line + pos + 1);
+
+    temp = stringAfterPipe;
+
+    token = strtok(stringBeforePipe, " ");
+
+    for(tokenIndex = 0; token != NULL && tokenIndex < MAX_ARGS - 1; tokenIndex++) {
+
+        argsBeforePipe[tokenIndex] = token;
+        token = strtok(NULL, " ");
+
+    }
+
+    argsBeforePipe[tokenIndex] = NULL;
+
+    token = strtok(stringAfterPipe, " ");
+
+    for(tokenIndex = 0; token != NULL && tokenIndex < MAX_ARGS - 1; tokenIndex++) {
+
+        temp = token;
+        if (strchr(temp, '|')) {
+
+            break;
+
+        }
+
+        argsAfterPipe[tokenIndex] = token;
+        token = strtok(NULL, " ");
+
+    }
+
+    if(pipe(fd) < 0) {
+
+        perror("Error when creating pipe");
+
+    }
+
+    if((id1 = fork()) < 0) {
+
+        perror("Error when forking");
+
+    } else if (id1 == 0) {
+
+        close(fd[0]);
+        dup2(fd[1], STDOUT_FILENO);
+
+/*
+        printf("argsBeforePipe %s, %s\n", argsBeforePipe[0], argsBeforePipe[1]);
+*/
+
+        if (execvp(argsBeforePipe[0], argsBeforePipe) == -1) {
+
+            perror("Error when using execvp");
+
+        }
+
+    }
+
+    if((id2 = fork()) < 0) {
+
+        perror("Error when forking");
+
+    } else if (id2 == 0) {
+
+        close(fd[1]);
+        dup2(fd[0], STDIN_FILENO);
+
+        /*printf("argsAfterPipe %s\n", argsAfterPipe[0]);*/
+
+        if (execvp(argsAfterPipe[0], argsAfterPipe) == -1) {
+
+            perror("Error when using execvp");
+
+        }
+
+    }
+
+    close(fd[0]);
+    close(fd[1]);
+
+    int status;
+    waitpid(id2, &status, 0);
 
 }
 
@@ -119,8 +260,6 @@ void setVariable(char *args[], char *line) {
 
     }
 
-
-
 }
 
 void changeDir(char *args[]) {
@@ -166,5 +305,23 @@ void echo(char *args[], int numOfTokens) {
     }
 
     std::cout << std::endl;
+
+}
+
+int countChar(char *line, char charToCount) {
+
+    int numOfOccurences = 0;
+
+    for(int i = 0; i < sizeof(line)/sizeof(line[0]); i++) {
+
+        if(line[0] == charToCount) {
+
+            numOfOccurences++;
+
+        }
+
+    }
+
+    return numOfOccurences;
 
 }
