@@ -14,5 +14,7 @@ void showEnv();
 void forker(char *args[], char *line);
 void piper(char *args[], char *line);
 int countChar(char *line, char charToCount);
+void redirectionHandler(char *args[], char *line);
+void redirectionReset();
 
 #endif //SHELLPROJECT_FUNCTIONS_H

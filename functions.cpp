@@ -92,13 +92,18 @@ void forker(char *args[], char *line) {
 
         }
 
+
     } else {
+
+        redirectionHandler(args, line);
 
         if (execvp(fileName, args) == -1) {
 
             perror("Error when using execvp");
 
         }
+
+        redirectionReset();
 
     }
 
@@ -123,6 +128,8 @@ void piper(char *args[], char *line) {
     strcpy(stringAfterPipe, line + pos + 1);
 
     temp = stringAfterPipe;
+
+    //Start tokenising
 
     token = strtok(stringBeforePipe, " ");
 
@@ -150,6 +157,8 @@ void piper(char *args[], char *line) {
         token = strtok(NULL, " ");
 
     }
+
+    // Finish tokenising
 
     if(pipe(fd) < 0) {
 
@@ -323,5 +332,63 @@ int countChar(char *line, char charToCount) {
     }
 
     return numOfOccurences;
+
+}
+
+void redirectionHandler(char *args[], char *line) {
+
+    char fileName[MAX_STRING_LEN], *tempGreater = line, *tempSmaller = line, *mode, *charLoc;
+    bool RorW = false, redirectionFound = false;
+    int pos;
+
+    if ((charLoc = strchr(tempGreater, '>')) != NULL) {
+
+        pos = charLoc - tempGreater + 1;
+
+        if(countChar(line, '>') == 1) {
+
+            mode = "w";
+
+        } else {
+
+            mode = "w+";
+            pos += 1;
+
+        }
+
+        RorW = true;
+        redirectionFound = true;
+
+    } else if (strchr(tempSmaller, '<') != NULL) {
+
+        pos = charLoc - tempSmaller + 1;
+
+        mode = "r";
+        redirectionFound = true;
+
+    }
+
+    if (redirectionFound) {
+
+        strcpy(fileName, line + pos);
+
+    }
+
+    if (RorW && redirectionFound) {
+
+        freopen(fileName, mode, stdout);
+
+    } else if (redirectionFound) {
+
+        freopen(fileName, mode, stdin);
+
+    }
+
+}
+
+void redirectionReset() {
+
+    freopen("dev/tty", "w", stdout);
+    freopen("dev/tty", "w", stdin);
 
 }
