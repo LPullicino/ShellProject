@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 
 #include "functions.h"
@@ -122,6 +121,8 @@ void piper(char *args[], char *line) {
     char *charLoc = strchr(temp, '|');
     int pos = charLoc - temp + 1;
 
+    //Splitting the users input into two different parts which will then be tokenised
+
     strncpy(stringBeforePipe, line, pos-1);
     strcpy(stringAfterPipe, line + pos + 1);
 
@@ -208,7 +209,7 @@ void piper(char *args[], char *line) {
 
 void showEnv() {
 
-    for (char **envVar = environ; *envVar; ++envVar) {
+    for (char **envVar = environ; *envVar; ++envVar) {                      //Loops through all the environment variables and prints them using the environ system variable
 
         std::cout << *envVar << '\n';
 
@@ -218,15 +219,14 @@ void showEnv() {
 
 void unsetVariable(char *args[]) {
 
-    char* varToBeUnset = args[1];
+    char* varToBeUnset = args[1];                       //Gets the variable that the system needs to unset
     unsetenv(varToBeUnset);
 
 }
 
 void setVariable(char *args[], char *line) {
 
-    char *token = NULL, *vars[2], *temp = nullptr;
-    int index = 0;
+    char *temp = nullptr;
 
     char varName[MAX_STRING_LEN];
     char varValue[MAX_STRING_LEN];
@@ -234,14 +234,14 @@ void setVariable(char *args[], char *line) {
     temp = line;
 
     char *charLoc = strchr(temp, '=');
-    int pos = charLoc - temp + 1;               //calculates the position of '=' as if it was an array
+    int pos = charLoc - temp + 1;                           //calculates the position of '=' as if it was an array
 
-    strncpy(varName, line, pos-1);          //copies the characters on the left hand side of the '=' symbol
-    strcpy(varValue, line + pos);          //copies the characters on the right hand side of the '=' symbol
+    strncpy(varName, line, pos-1);                       //copies the characters on the left hand side of the '=' symbol
+    strcpy(varValue, line + pos);                       //copies the characters on the right hand side of the '=' symbol
 
     temp = varValue;
 
-    if(strchr(temp, '$') != NULL) {
+    if(strchr(temp, '$') != NULL) {                      //handles the instances where the user wants to set a variable to the value of another variable
 
         char newVar[MAX_STRING_LEN];
 
@@ -259,7 +259,7 @@ void setVariable(char *args[], char *line) {
 
 void changeDir(char *args[]) {
 
-    char* newDir = args[1];
+    char* newDir = args[1];                                                 //Checks which directory the user wants to go to
 
     if(chdir(newDir) != 0){
 
@@ -269,7 +269,7 @@ void changeDir(char *args[]) {
 
         char *currWD = getcwd(NULL, 0);
 
-        setenv("CWD", currWD, 1);
+        setenv("CWD", currWD, 1);                              //Updates the variable that contains our current working directory
         free(currWD);
 
     }
@@ -284,7 +284,7 @@ void echo(char *args[], int numOfTokens) {
         char *dollarCheck = args[i];
         char *escapeCharCheck = args[i];
 
-        if(strchr(dollarCheck, '$') != NULL /*&& strchr(escapeCharCheck, '\\') == NULL*/) {
+        if(strchr(dollarCheck, '$') != NULL /*&& strchr(escapeCharCheck, '\\') == NULL*/) {                             //Handles the translation from environment variables to its value
 
             char *var = strtok(args[i], "$");
             std::cout << getenv(var);
@@ -324,7 +324,7 @@ int countChar(char *line, char charToCount) {
 void redirectionHandler(char *args[], char *line) {
 
     char fileName[MAX_STRING_LEN], *tempGreater = line, *tempSmaller = line, *mode, *charLoc;
-    bool RorW = false, redirectionFound = false;
+    bool RorW = false, redirectionFound = false;                                                                        //RorW - Read or Write where "false" is read and "true" is write
     int pos;
 
     if ((charLoc = strchr(tempGreater, '>')) != NULL) {
@@ -333,11 +333,11 @@ void redirectionHandler(char *args[], char *line) {
 
         if(countChar(line, '>') == 1) {
 
-            mode = "w";
+            mode = "w";                                                                                                 //freopen() has multiple different modes in this case we're setting it to "w" which is the overwrite mode.
 
         } else {
 
-            mode = "w+";
+            mode = "w+";                                                                                                //Setting mode to append
             pos += 1;
 
         }
@@ -349,7 +349,7 @@ void redirectionHandler(char *args[], char *line) {
 
         pos = charLoc - tempSmaller + 1;
 
-        mode = "r";
+        mode = "r";                                                                                                     //Setting mode to read
         redirectionFound = true;
 
     }
@@ -362,17 +362,19 @@ void redirectionHandler(char *args[], char *line) {
 
     if (RorW && redirectionFound) {
 
-        freopen(fileName, mode, stdout);
+        freopen(fileName, mode, stdout);                                //redirects program output to the given filename
 
     } else if (redirectionFound) {
 
-        freopen(fileName, mode, stdin);
+        freopen(fileName, mode, stdin);                                 //redirects contents of the given file to the input stream
 
     }
 
 }
 
 void redirectionReset() {
+
+    //since freopen() redirects our input/output streams we have to redirect them back to our terminal
 
     freopen("dev/tty", "w", stdout);
     freopen("dev/tty", "w", stdin);

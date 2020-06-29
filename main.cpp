@@ -15,15 +15,11 @@ int main() {
     char *line, ogLine[MAX_STRING_LEN], *token = NULL, *args[MAX_ARGS], *implementedFunctions[NUM_FUNCTIONS];
     int tokenIndex, numOfTokens;
 
-    char *username = getenv("USER");
-
     initVariables();
 
     while ((line = linenoise("$ ")) != NULL) {
 
         strcpy(ogLine, line);
-
-        //printf("%s\n", ogLine);
 
         token = strtok(line, " ");
 
@@ -53,6 +49,10 @@ int main() {
 
             unsetVariable(args);
 
+        } else if (strcmp(args[0], "exit") == 0){
+
+            return 0;
+
         } else {
 
             char *tempArg = args[0];
@@ -79,7 +79,5 @@ int main() {
         linenoiseFree(line);
 
     }
-
-    return 0;
 
 }
