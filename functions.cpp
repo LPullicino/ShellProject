@@ -82,8 +82,6 @@ void forker(char *args[], char *line) {
         char fileArgument[MAX_STRING_LEN];
         strncpy(fileArgument, line + firstPos, lastPos - firstPos - 1);
 
-        /*printf("%s\n", fileArgument);*/
-
         char *toPass[3] = {fileName, fileArgument, NULL};
 
         if (execvp(fileName, toPass) == -1) {
@@ -175,10 +173,6 @@ void piper(char *args[], char *line) {
         close(fd[0]);
         dup2(fd[1], STDOUT_FILENO);
 
-/*
-        printf("argsBeforePipe %s, %s\n", argsBeforePipe[0], argsBeforePipe[1]);
-*/
-
         if (execvp(argsBeforePipe[0], argsBeforePipe) == -1) {
 
             perror("Error when using execvp");
@@ -195,8 +189,6 @@ void piper(char *args[], char *line) {
 
         close(fd[1]);
         dup2(fd[0], STDIN_FILENO);
-
-        /*printf("argsAfterPipe %s\n", argsAfterPipe[0]);*/
 
         if (execvp(argsAfterPipe[0], argsAfterPipe) == -1) {
 
@@ -244,14 +236,8 @@ void setVariable(char *args[], char *line) {
     char *charLoc = strchr(temp, '=');
     int pos = charLoc - temp + 1;               //calculates the position of '=' as if it was an array
 
-/*    printf("%d\n", pos);*/
-
     strncpy(varName, line, pos-1);          //copies the characters on the left hand side of the '=' symbol
     strcpy(varValue, line + pos);          //copies the characters on the right hand side of the '=' symbol
-
-/*    printf("%s\n", line);
-    printf("%s\n", varName);
-    printf("%s\n", varValue);*/
 
     temp = varValue;
 
