@@ -12,9 +12,6 @@
 #include "functions.h"
 
 
-#define MAX_ARGS 255
-#define MAX_PATH 1024
-#define MAX_STRING_LEN 255
 
 extern char **environ;
 
@@ -284,10 +281,23 @@ void echo(char *args[], int numOfTokens) {
         char *dollarCheck = args[i];
         char *escapeCharCheck = args[i];
 
-        if(strchr(dollarCheck, '$') != NULL /*&& strchr(escapeCharCheck, '\\') == NULL*/) {                             //Handles the translation from environment variables to its value
+        if(strchr(dollarCheck, '$') != NULL) {                             //Handles the translation from environment variables to its va
 
-            char *var = strtok(args[i], "$");
-            std::cout << getenv(var);
+             if(strchr(escapeCharCheck, '\\') == NULL) {
+
+                 char *var = strtok(args[i], "$");
+                 std::cout << getenv(var);
+
+             } else {
+
+                 char var[MAX_STRING_LEN];
+
+                 strcpy(var, args[i]+1);
+                 std::cout << var;
+
+             }
+
+
 
         } else {
 

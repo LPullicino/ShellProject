@@ -1,18 +1,11 @@
-#include <iostream>
-#include <cstdlib>
-#include <cstdio>
 #include <cstring>
 
 #include "linenoise.h"        //The Linenoise utility used is from https://github.com/antirez/linenoise
 #include "functions.h"
 
-#define MAX_ARGS 255
-#define NUM_FUNCTIONS 1
-#define MAX_STRING_LEN 255
-
 int main() {
 
-    char *line, ogLine[MAX_STRING_LEN], *token = NULL, *args[MAX_ARGS], *implementedFunctions[NUM_FUNCTIONS];
+    char *line, ogLine[MAX_STRING_LEN], *token = NULL, *args[MAX_ARGS];
     int tokenIndex, numOfTokens;
 
     initVariables();
@@ -68,7 +61,7 @@ int main() {
 
                 piper(args, ogLine);
 
-            } else {
+            } else if (tokenIndex != 1){
 
                 forker(args, ogLine);
 

@@ -5,6 +5,11 @@
 #ifndef SHELLPROJECT_FUNCTIONS_H
 #define SHELLPROJECT_FUNCTIONS_H
 
+
+#define MAX_ARGS 255
+#define MAX_PATH 1024
+#define MAX_STRING_LEN 255
+
 void initVariables();
 void changeDir(char *args[]);
 void echo(char *args[], int numOfTokens);
