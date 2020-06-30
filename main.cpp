@@ -63,7 +63,7 @@ int main() {
 
             } else if (tokenIndex != 1){
 
-                forker(args, ogLine);
+                forker(args, ogLine, numOfTokens);
 
             }
 

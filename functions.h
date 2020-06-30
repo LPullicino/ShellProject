@@ -16,10 +16,10 @@ void echo(char *args[], int numOfTokens);
 void setVariable(char *args[], char *line);
 void unsetVariable(char *args[]);
 void showEnv();
-void forker(char *args[], char *line);
+void forker(char *args[], char *line, int numOfTokens);
 void piper(char *args[], char *line);
 int countChar(char *line, char charToCount);
-void redirectionHandler(char *args[], char *line);
+void redirectionHandler(char *args[], char *line, int numOfTokens);
 void redirectionReset();
 
 #endif //SHELLPROJECT_FUNCTIONS_H

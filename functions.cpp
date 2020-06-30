@@ -32,7 +32,7 @@ void initVariables() {
 
 }
 
-void forker(char *args[], char *line) {
+void forker(char *args[], char *line, int numOfTokens) {
 
     pid_t pidNum = fork();
     char *temp = line;
@@ -89,7 +89,7 @@ void forker(char *args[], char *line) {
 
     } else {
 
-        redirectionHandler(args, line);
+        redirectionHandler(args, line, numOfTokens);
 
         if (execvp(fileName, args) == -1) {
 
@@ -331,15 +331,31 @@ int countChar(char *line, char charToCount) {
 
 }
 
-void redirectionHandler(char *args[], char *line) {
+void redirectionHandler(char *args[], char *line, int numOfTokens) {
 
-    char fileName[MAX_STRING_LEN], *tempGreater = line, *tempSmaller = line, *mode, *charLoc;
+    char fileName[MAX_STRING_LEN], *tempGreater = line, *tempSmaller = line, *mode, *charLoc, *var;
     bool RorW = false, redirectionFound = false;                                                                        //RorW - Read or Write where "false" is read and "true" is write
     int pos;
 
-    if ((charLoc = strchr(tempGreater, '>')) != NULL) {
+    for(int i = 0; i < numOfTokens; i++) {
 
-        pos = charLoc - tempGreater + 1;
+        var = args[i];
+
+        if (strcmp(var, ">") == 0 || strcmp(var, ">>") == 0 || strcmp(var, "<") == 0) {
+
+            redirectionFound = true;
+
+        }
+
+        if (redirectionFound) {
+
+            args[i] = NULL;
+
+        }
+
+    }
+
+    if ((charLoc = strchr(tempGreater, '>')) != NULL) {
 
         if(countChar(line, '>') == 1) {
 
@@ -347,17 +363,21 @@ void redirectionHandler(char *args[], char *line) {
 
         } else {
 
-            mode = "w+";                                                                                                //Setting mode to append
+            charLoc = strrchr(tempGreater, '>');
+
+            mode = "a";                                                                                                //Setting mode to append
             pos += 1;
 
         }
+
+        pos = charLoc - tempGreater + 1;
 
         RorW = true;
         redirectionFound = true;
 
     } else if (strchr(tempSmaller, '<') != NULL) {
 
-        pos = charLoc - tempSmaller + 1;
+        pos = charLoc - tempSmaller + 2;
 
         mode = "r";                                                                                                     //Setting mode to read
         redirectionFound = true;
@@ -366,7 +386,7 @@ void redirectionHandler(char *args[], char *line) {
 
     if (redirectionFound) {
 
-        strcpy(fileName, line + pos);
+        strcpy(fileName, line + pos + 1);
 
     }
 
